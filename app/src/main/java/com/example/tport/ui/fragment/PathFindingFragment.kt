@@ -1,28 +1,31 @@
 package com.example.tport.ui.fragment
 
-import DialogDatePickerOnlyDay
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.DatePicker
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.tport.MapFragmentActivity
-import com.example.tport.MyApplication
 import com.example.tport.databinding.FragmentPathFindingBinding
-import com.example.tport.ui.PathFindingViewModel
-import com.example.tport.ui.PathFindingViewModelFactory
 import com.example.tport.ui.adapter.NaverPathListAdapter
 import com.example.tport.ui.adapter.TportPathListAdapter
+import com.example.tport.viewmodel.PathViewModel
+import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.time.LocalDate
+import java.time.LocalTime
 
 
 class PathFindingFragment : Fragment() {
@@ -30,11 +33,12 @@ class PathFindingFragment : Fragment() {
     lateinit var mainActivity: MapFragmentActivity
     private var _binding: FragmentPathFindingBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: PathFindingViewModel by activityViewModels {
-        PathFindingViewModelFactory(
-            (activity?.application as MyApplication).database.pathDao(),
-        )
-    }
+    private val viewModel: PathViewModel by viewModel()
+//    private val viewModel: PathFindingViewModel by activityViewModels {
+//        PathFindingViewModelFactory(
+//            (activity?.application as MyApplication).database.pathDao(),
+//        )
+//    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -63,61 +67,113 @@ class PathFindingFragment : Fragment() {
                 navigateToDetail(it.id)
             }
         )
+        // date, time 정의
+//        var dateString = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+//        var timeString = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:MM:ss"))
+        var timeResult: LocalDateTime
+        var date = LocalDate.now()
+        var time = LocalTime.now()
+        timeResult = LocalDateTime.of(date, time)
 
         // 초기 adapter는 naverAdapter로 설정
-        binding.recyclerview.adapter = naverAdapter
+        binding.recyclerview.adapter = tportAdapter
         binding.recyclerview.layoutManager = LinearLayoutManager(this.context)
 
-//        binding.timeButton.setOnClickListener{
-//            // recyclerView에 naverAdapter 연결
-//            binding.recyclerview.adapter = naverAdapter
-//            viewModel.getSearchedPathList(binding.editTextOrgin.text.toString(), binding.editTextDestination.text.toString(), "6시 45분")
-////            viewModel.getSearchedPathList("경기도 화성시 청계동 KCC스위첸아파트", "서울역1호선", "6시 45분")
-//            viewModel.searchedPathList.observe(this.viewLifecycleOwner) {
-//                viewModel.searchedPathList.let { naverAdapter.submitList( it.value) }
-//            }
-//        }
+        binding.editTextOrgin.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+            if (hasFocus){
+                Log.d("EditText", "Origin OnFocus")
+            }else{
+                lifecycleScope.launch {
+                    viewModel.searchPath(
+                        binding.editTextOrgin.text.toString(),
+                        binding.editTextDestination.text.toString(),
+                        timeResult.format(DateTimeFormatter.ISO_DATE_TIME)
+                    )
+                }
+            }
+        }
 
-        var dateString = ""
-        var timeString = ""
-        var timeResult = ""
+        binding.editTextDestination.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+            if (hasFocus){
+                Log.d("EditText", "Destination OnFocus")
+            }else{
+                lifecycleScope.launch {
+                    viewModel.searchPath(
+                        binding.editTextOrgin.text.toString(),
+                        binding.editTextDestination.text.toString(),
+                        timeResult.format(DateTimeFormatter.ISO_DATE_TIME)
+                    )
+                }
+            }
+        }
 
-        binding.dateButton.setOnClickListener{
+        binding.dateButton.setOnClickListener {
             val calendar: Calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
             val month = calendar.get(Calendar.MONTH)
             val day = calendar.get(Calendar.DAY_OF_MONTH)
             val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
-                dateString = "${year}년 ${month+1}월 ${dayOfMonth}일"
-                timeResult = "날짜/시간 : "+ dateString + " / " + timeString
+                date = LocalDate.of(year, month, dayOfMonth)
+                timeResult = LocalDateTime.of(date, time)
+                Log.d("Time", "it is $timeResult")
             }
-            val datePickerDialog: DatePickerDialog = DialogDatePickerOnlyDay(mainActivity,
-                dateSetListener, year, month, day)
+            val datePickerDialog = DatePickerDialog(
+                mainActivity,
+                dateSetListener, year, month, day
+            )
             datePickerDialog.show()
         }
 
-        binding.timeButton.setOnClickListener{
+        binding.timeButton.setOnClickListener {
             val cal = Calendar.getInstance()
-            val timeSetListener = TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
-                timeString = "${hourOfDay}시 ${minute}분"
-                timeResult = "날짜/시간 : "+dateString + " / " + timeString
+            val timeSetListener = TimePickerDialog.OnTimeSetListener { _, hourOfDay, minute ->
+                time = LocalTime.of(hourOfDay, minute, time.second)
+                timeResult = LocalDateTime.of(date, time)
+                Log.d("Time", "it is $timeResult")
             }
-            TimePickerDialog(mainActivity, timeSetListener, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE),true).show()
+            val timePickerDialog = TimePickerDialog(
+                mainActivity,
+                timeSetListener,
+                cal.get(Calendar.HOUR_OF_DAY),
+                cal.get(Calendar.MINUTE),
+                true
+            )
+            timePickerDialog.show()
         }
 
-//        binding.dateButton.setOnClickListener{
-//            // recyclerView에 tportAdapter 연결
-//            binding.recyclerview.adapter = tportAdapter
-//            viewModel.getTportSearchedPathList(binding.editTextOrgin.text.toString(), binding.editTextDestination.text.toString(), "6시 45분")
-////            viewModel.getTportSearchedPathList("경기도 화성시 청계동 KCC스위첸아파트", "서울역1호선", "6시 45분")
-//            viewModel.tportSearchedPathList.observe(this.viewLifecycleOwner) {
-//                viewModel.tportSearchedPathList.let { tportAdapter.submitList( it.value) }
-//            }
-//        }
+        // show searched Path List
+        lifecycleScope.launch {
+            viewModel.pathList.collect {
+                tportAdapter.submitList(it)
+            }
+        }
+
+/*
+        binding.timeButton.setOnClickListener{
+            // recyclerView에 naverAdapter 연결
+            binding.recyclerview.adapter = naverAdapter
+            viewModel.getSearchedPathList(binding.editTextOrgin.text.toString(), binding.editTextDestination.text.toString(), "6시 45분")
+            viewModel.getSearchedPathList("경기도 화성시 청계동 KCC스위첸아파트", "서울역1호선", "6시 45분")
+            viewModel.searchedPathList.observe(this.viewLifecycleOwner) {
+                viewModel.searchedPathList.let { naverAdapter.submitList( it.value) }
+            }
+        }
+        binding.dateButton.setOnClickListener{
+            // recyclerView에 tportAdapter 연결
+            binding.recyclerview.adapter = tportAdapter
+            viewModel.getTportSearchedPathList(binding.editTextOrgin.text.toString(), binding.editTextDestination.text.toString(), "6시 45분")
+            viewModel.getTportSearchedPathList("경기도 화성시 청계동 KCC스위첸아파트", "서울역1호선", "6시 45분")
+            viewModel.tportSearchedPathList.observe(this.viewLifecycleOwner) {
+                viewModel.tportSearchedPathList.let { tportAdapter.submitList( it.value) }
+            }
+        }
+*/
     }
 
+
     private fun navigateToDetail(id: Int) {
-        val action = PathFindingFragmentDirections.actionPathFindingFragmentToPathDetailFragment(id)
+        val action =
+            PathFindingFragmentDirections.actionPathFindingFragmentToPathDetailFragment(id)
         this.findNavController().navigate(action)
     }
 }

@@ -118,7 +118,7 @@
                 android:padding="0dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:backgroundTint="@color/black"
+                android:backgroundTint="@color/purple_500"
                 android:textColor="@color/white"
                 android:text="날짜 선택"/>
             <Button
@@ -130,7 +130,7 @@
                 android:padding="0dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:backgroundTint="@color/black"
+                android:backgroundTint="@color/purple_500"
                 android:textColor="@color/white"
                 android:text="시간 선택"/>
         </LinearLayout>

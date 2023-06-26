@@ -1,5 +1,7 @@
 package com.example.tport.network.dto
 
+import java.time.LocalDateTime
+
 data class ReservationRequest(
     val busId: Int,
     val getOnBusStop: String,

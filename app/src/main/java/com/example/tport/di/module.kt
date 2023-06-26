@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.tport.network.RestService
 import com.example.tport.ui.PathFindingViewModel
 import com.example.tport.util.AuthStorage
+import com.example.tport.viewmodel.PathViewModel
 import com.example.tport.viewmodel.UserViewModel
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -147,4 +148,5 @@ val appModule = module {
 
     viewModel { PathFindingViewModel(get()) }
     viewModel { UserViewModel(get(), get()) }
+    viewModel { PathViewModel(get()) }
 }

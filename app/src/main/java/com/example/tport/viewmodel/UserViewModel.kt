@@ -37,14 +37,14 @@ class UserViewModel(
         }
     }
 
-    //    suspend fun signup(id: String, password: String, nickname: String) {
-//        try {
-//            restService.signup(SignupRequest(id, password, nickname))
-//        } catch (e: Exception) {
-//            Log.d("Error", "Error is occurred")
-//        }
-//    }
-/*
+/*  suspend fun signup(id: String, password: String, nickname: String) {
+        try {
+            restService.signup(SignupRequest(id, password, nickname))
+        } catch (e: Exception) {
+            Log.d("Error", "Error is occurred")
+        }
+    }
+
     suspend fun logout() {
         try {
             restService.logout()
