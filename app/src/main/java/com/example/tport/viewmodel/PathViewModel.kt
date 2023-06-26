@@ -14,6 +14,9 @@ class PathViewModel(
     private val _pathList = MutableStateFlow<List<Path?>>(listOf())
     val pathList: StateFlow<List<Path?>> = _pathList
 
+    private val _path = MutableStateFlow<Path?>(null)
+    val path: StateFlow<Path?> = _path
+
     suspend fun searchPath(origin: String, destination: String, time: String) {
         try {
             val response: List<Path> = restService.searchPath(origin, destination, time)
@@ -23,9 +26,19 @@ class PathViewModel(
         }
     }
 
-    suspend fun reservePath(id: Int, busStop: String, time: String){
+    suspend fun reservePath(path: Path, time:String){
         try {
-            val response: ReservationResponse = restService.reservation(ReservationRequest(id, busStop, time))
+            val id = path.bus.busId
+            val busStop = path.getOnBusStop
+            val response = restService.reservation(ReservationRequest(id, busStop, time))
+        } catch (e: Exception) {
+            Log.d("Error", "Error is occurred. Error: $e")
+        }
+    }
+
+    suspend fun getPath(path: Path){
+        try {
+            val response: Path
         } catch (e: Exception) {
             Log.d("Error", "Error is occurred. Error: $e")
         }

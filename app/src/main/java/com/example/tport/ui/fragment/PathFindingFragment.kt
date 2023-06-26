@@ -16,6 +16,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.tport.MapFragmentActivity
 import com.example.tport.databinding.FragmentPathFindingBinding
+import com.example.tport.network.dto.Path
 import com.example.tport.ui.adapter.NaverPathListAdapter
 import com.example.tport.ui.adapter.TportPathListAdapter
 import com.example.tport.viewmodel.PathViewModel
@@ -56,17 +57,16 @@ class PathFindingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val tportAdapter = TportPathListAdapter(
-            onItemClicked = {
-                Log.d("PathFindingFragment", "Path is clicked")
-                navigateToDetail(it.id)
-            }
-        )
-
         // date, time 정의
         var date = LocalDate.now()
         var time = LocalTime.now()
         var timeResult = LocalDateTime.of(date, time)
+        val tportAdapter = TportPathListAdapter(
+            onItemClicked = {
+                Log.d("PathFindingFragment", "Path is clicked")
+                navigateToDetail(it, timeResult.format(DateTimeFormatter.ISO_DATE_TIME))
+            }
+        )
 
         // 초기 adapter는 naverAdapter로 설정
         binding.recyclerview.adapter = tportAdapter
@@ -163,10 +163,9 @@ class PathFindingFragment : Fragment() {
 */
     }
 
-
-    private fun navigateToDetail(id: Int) {
+    private fun navigateToDetail(path: Path, selectedTime: String) {
         val action =
-            PathFindingFragmentDirections.actionPathFindingFragmentToPathDetailFragment(id)
+            PathFindingFragmentDirections.actionPathFindingFragmentToPathDetailFragment(path, selectedTime)
         this.findNavController().navigate(action)
     }
 }

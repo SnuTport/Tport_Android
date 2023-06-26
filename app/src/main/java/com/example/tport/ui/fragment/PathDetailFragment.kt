@@ -1,22 +1,30 @@
 package com.example.tport.ui.fragment
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.tport.MapFragmentActivity
 import com.example.tport.MyApplication
 import com.example.tport.databinding.FragmentPathDetailBinding
+import com.example.tport.network.dto.BusStopInDetail
+import com.example.tport.network.dto.Path
 import com.example.tport.network.dto.previous.Path0
 import com.example.tport.ui.PathFindingViewModel
 import com.example.tport.ui.PathFindingViewModelFactory
 import com.example.tport.ui.adapter.MethodListAdapter
+import com.example.tport.viewmodel.PathViewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class PathDetailFragment : Fragment() {
@@ -26,11 +34,13 @@ class PathDetailFragment : Fragment() {
     private var _binding: FragmentPathDetailBinding? = null
     private val binding get() = _binding!!
     private val navigationArgs: PathDetailFragmentArgs by navArgs()
-    private val viewModel: PathFindingViewModel by activityViewModels {
-        PathFindingViewModelFactory(
-            (activity?.application as MyApplication).database.pathDao(),
-        )
-    }
+    private val viewModel: PathViewModel by viewModel()
+
+//    private val viewModel: PathFindingViewModel by activityViewModels {
+//        PathFindingViewModelFactory(
+//            (activity?.application as MyApplication).database.pathDao(),
+//        )
+//    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -48,7 +58,32 @@ class PathDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.retrievePath(navigationArgs.pathId).observe(this.viewLifecycleOwner){
+        val selectedPath: Path = navigationArgs.path!!
+        val selectedTime: String = navigationArgs.time
+
+        val adapter = MethodListAdapter(
+            onItemClicked = {
+
+            },
+            onButtonClicked = {
+                lifecycleScope.launch {
+                    viewModel.reservePath(selectedPath, selectedTime)
+                }
+            }
+        )
+
+        lifecycleScope.launch {
+            viewModel.path.collect {
+//                adapter.submitList(it.subPathList)
+            }
+        }
+    }
+
+/*
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        viewModel.retrievePath(navigationArgs.path).observe(this.viewLifecycleOwner){
             bind(it)
             path = it
             var methodList = viewModel.getMethodList(it)
@@ -113,4 +148,63 @@ class PathDetailFragment : Fragment() {
     private fun updateReservedData(path: Path0) {
         viewModel.updateReservedNum(path.id)
     }
+*/
+    private fun bind(path: Path){
+        val busStopList: List<BusStopInDetail> = path.bus.busStop
+        var busArrivalHour: Int = 0
+        var busArrivalMin: Int = 0
+        var busEmptyNum: Int = 45
+        var busDemand: Int = 0
+        var busReservedNum: Int = 0
+        var busUnreservedNum: Int = 0
+
+        for (busStop in busStopList) {
+            if (busStop.name == path.getOnBusStop){
+                busArrivalHour = busStop.busArrivalTime.hour
+                busArrivalMin = busStop.busArrivalTime.minute
+                busEmptyNum = busStop.forecastingBusStopData.emptyNum
+                busDemand = busStop.forecastingBusStopData.demand
+                busReservedNum = busStop.forecastingBusStopData.reservedNum
+                busUnreservedNum = busStop.forecastingBusStopData.unreservedNum
+            }
+
+        }
+        val hourArrival = busArrivalHour
+        val minArrival = busArrivalMin
+        val timeArrival = hourArrival.toString() + "시 " + minArrival.toString() + "분"
+        val listArrivalTime: List<String> = listOf("ㅣ", timeArrival, "도착", "ㅣ")
+        val hourTravel = path.travelTime/60
+        val minTravel = path.travelTime%60
+        val timeTravel = hourTravel.toString() + "시간 " + minTravel.toString() + "분"
+
+        binding.apply {
+            totalTravelTime.text = timeTravel
+            finalArrivalTime.text = listArrivalTime.joinToString(" ")
+            val fareString = path.fare.toString() + "원"
+            fare.text = fareString
+            travelSequence.text = ""
+    //                travelSequence.text = concatenate(
+    //                    path.method1, path.travelTime1, path.method2, path.travelTime2, path.method3, path.travelTime3,
+    //                    path.method4, path.travelTime4, path.method5, path.travelTime5, path.method6, path.travelTime6
+    //                )
+        }
+    }
+
+    private fun concatenateSequence(
+        s1: String, s2: String, s3: String, s4: String, s5: String, s6: String,
+        s7: String, s8: String, s9: String, s10: String, s11: String, s12: String,
+    ): String {
+        val input = listOf(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12)
+        val output: MutableList<String> = mutableListOf()
+        for (i in input.indices) {
+            if (input[i] != "None" && input[i] != "NoneNone" && input[i] != "" ) {
+
+                if (i%2 == 1) {
+                    output.add(input[i-1]+" "+input[i]+"분")
+                }
+            }
+        }
+        return output.joinToString("  →  ")
+    }
+
 }

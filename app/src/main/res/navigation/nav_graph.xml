@@ -29,8 +29,12 @@
         android:label="fragment_path_detail"
         tools:layout="@layout/fragment_path_detail" >
         <argument
-            android:name="path_id"
-            app:argType="integer" />
+            android:name="path"
+            app:argType="com.example.tport.network.dto.Path"
+            app:nullable="true" />
+        <argument
+            android:name="time"
+            app:argType="string" />
     </fragment>
     <navigation android:id="@+id/login_graph" app:startDestination="@id/signupFragment">
     <fragment
