@@ -56,24 +56,17 @@ class PathFindingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val naverAdapter = NaverPathListAdapter(
+        val tportAdapter = TportPathListAdapter(
             onItemClicked = {
                 Log.d("PathFindingFragment", "Path is clicked")
                 navigateToDetail(it.id)
             }
         )
-        val tportAdapter = TportPathListAdapter(
-            onItemClicked = {
-                navigateToDetail(it.id)
-            }
-        )
+
         // date, time 정의
-//        var dateString = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-//        var timeString = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:MM:ss"))
-        var timeResult: LocalDateTime
         var date = LocalDate.now()
         var time = LocalTime.now()
-        timeResult = LocalDateTime.of(date, time)
+        var timeResult = LocalDateTime.of(date, time)
 
         // 초기 adapter는 naverAdapter로 설정
         binding.recyclerview.adapter = tportAdapter
@@ -113,7 +106,7 @@ class PathFindingFragment : Fragment() {
             val month = calendar.get(Calendar.MONTH)
             val day = calendar.get(Calendar.DAY_OF_MONTH)
             val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
-                date = LocalDate.of(year, month, dayOfMonth)
+                date = LocalDate.of(year, month+1, dayOfMonth)
                 timeResult = LocalDateTime.of(date, time)
                 Log.d("Time", "it is $timeResult")
             }

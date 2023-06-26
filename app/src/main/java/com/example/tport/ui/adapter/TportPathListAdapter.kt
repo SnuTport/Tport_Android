@@ -89,6 +89,7 @@ class TportPathListAdapter(
                 finalArrivalTime.text = listArrivalTime.joinToString(" ")
                 val fareString = path.fare.toString() + "원"
                 fare.text = fareString
+                travelSequence.text = ""
 //                travelSequence.text = concatenate(
 //                    path.method1, path.travelTime1, path.method2, path.travelTime2, path.method3, path.travelTime3,
 //                    path.method4, path.travelTime4, path.method5, path.travelTime5, path.method6, path.travelTime6
