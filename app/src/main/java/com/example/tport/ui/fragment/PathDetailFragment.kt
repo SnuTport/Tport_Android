@@ -73,8 +73,9 @@ class PathDetailFragment : Fragment() {
         )
 
         lifecycleScope.launch {
+            viewModel.getPath(selectedPath, selectedTime)
             viewModel.path.collect {
-//                adapter.submitList(it.subPathList)
+//                adapter.submitList(it.subPaths)
             }
         }
     }
@@ -150,7 +151,8 @@ class PathDetailFragment : Fragment() {
     }
 */
     private fun bind(path: Path){
-        val busStopList: List<BusStopInDetail> = path.bus.busStop
+        val busStopList: List<BusStopInDetail> = path.metroBusDetail.busStop
+        var busArrivalTime: String = ""
         var busArrivalHour: Int = 0
         var busArrivalMin: Int = 0
         var busEmptyNum: Int = 45
@@ -160,8 +162,7 @@ class PathDetailFragment : Fragment() {
 
         for (busStop in busStopList) {
             if (busStop.name == path.getOnBusStop){
-                busArrivalHour = busStop.busArrivalTime.hour
-                busArrivalMin = busStop.busArrivalTime.minute
+                busArrivalTime = busStop.busArrivalTime
                 busEmptyNum = busStop.forecastingBusStopData.emptyNum
                 busDemand = busStop.forecastingBusStopData.demand
                 busReservedNum = busStop.forecastingBusStopData.reservedNum
@@ -169,10 +170,8 @@ class PathDetailFragment : Fragment() {
             }
 
         }
-        val hourArrival = busArrivalHour
-        val minArrival = busArrivalMin
-        val timeArrival = hourArrival.toString() + "시 " + minArrival.toString() + "분"
-        val listArrivalTime: List<String> = listOf("ㅣ", timeArrival, "도착", "ㅣ")
+
+        val listArrivalTime: List<String> = listOf("ㅣ", busArrivalTime, "도착", "ㅣ")
         val hourTravel = path.travelTime/60
         val minTravel = path.travelTime%60
         val timeTravel = hourTravel.toString() + "시간 " + minTravel.toString() + "분"
@@ -206,5 +205,4 @@ class PathDetailFragment : Fragment() {
         }
         return output.joinToString("  →  ")
     }
-
 }

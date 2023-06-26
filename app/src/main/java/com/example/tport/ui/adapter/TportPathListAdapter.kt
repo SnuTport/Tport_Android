@@ -1,6 +1,7 @@
 package com.example.tport.ui.adapter
 
 import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -10,6 +11,7 @@ import com.example.tport.network.dto.previous.Path0
 import com.example.tport.databinding.PathListItemBinding
 import com.example.tport.network.dto.BusStopInDetail
 import com.example.tport.network.dto.Path
+import com.example.tport.network.dto.SubPath
 
 class TportPathListAdapter(
     private val onItemClicked:(Path) -> Unit
@@ -18,36 +20,23 @@ class TportPathListAdapter(
     class PathViewHolder(private val binding: PathListItemBinding):
         RecyclerView.ViewHolder(binding.root) {
 
-        private fun concatenate(
-            s1: String, s2: String, s3: String, s4: String, s5: String, s6: String,
-            s7: String, s8: String, s9: String, s10: String, s11: String, s12: String,
-        ): String {
-            val input = listOf(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12)
-            val output: MutableList<String> = mutableListOf()
-            for (i in input.indices) {
-                if (input[i] != "None" && input[i] != "NoneNone" && input[i] != "" ) {
-
-                    if (i%2 == 1) {
-                        output.add(input[i-1]+" "+input[i]+"분")
-                    }
-                }
-            }
-            return output.joinToString(" → ")
-        }
-
         fun bind(path: Path){
-            val busStopList: List<BusStopInDetail> = path.bus.busStop
-            var busArrivalHour: Int = 0
-            var busArrivalMin: Int = 0
-            var busEmptyNum: Int = 45
-            var busDemand: Int = 0
-            var busReservedNum: Int = 0
-            var busUnreservedNum: Int = 0
+            val busStopList: List<BusStopInDetail> = path.metroBusDetail.busStop
+            val subPathList: List<SubPath> = path.subPaths
+            val travelSequenceList = mutableListOf<String>()
+            for (subPath in subPathList) {
+                travelSequenceList.add(subPath.vehicle.type + " " + subPath.travelTime.toString() + "분")
+                Log.d("TravelSequence", "$travelSequenceList")
+            }
+            var busArrivalTime = ""
+            var busEmptyNum = 45
+            var busDemand = 0
+            var busReservedNum = 0
+            var busUnreservedNum = 0
 
             for (busStop in busStopList) {
                 if (busStop.name == path.getOnBusStop){
-                    busArrivalHour = busStop.busArrivalTime.hour
-                    busArrivalMin = busStop.busArrivalTime.minute
+                    busArrivalTime = busStop.busArrivalTime
                     busEmptyNum = busStop.forecastingBusStopData.emptyNum
                     busDemand = busStop.forecastingBusStopData.demand
                     busReservedNum = busStop.forecastingBusStopData.reservedNum
@@ -55,11 +44,7 @@ class TportPathListAdapter(
                 }
 
             }
-
-            val hourArrival = busArrivalHour
-            val minArrival = busArrivalMin
-            val timeArrival = hourArrival.toString() + "시 " + minArrival.toString() + "분"
-            val listArrivalTime: List<String> = listOf("ㅣ", timeArrival, "도착", "ㅣ")
+            val listArrivalTime: List<String> = listOf("ㅣ", busArrivalTime, "도착", "ㅣ")
             val hourTravel = path.travelTime/60
             val minTravel = path.travelTime%60
             val timeTravel = hourTravel.toString() + "시간 " + minTravel.toString() + "분"
@@ -89,7 +74,7 @@ class TportPathListAdapter(
                 finalArrivalTime.text = listArrivalTime.joinToString(" ")
                 val fareString = path.fare.toString() + "원"
                 fare.text = fareString
-                travelSequence.text = ""
+                travelSequence.text = travelSequenceList.joinToString(" → ")
 //                travelSequence.text = concatenate(
 //                    path.method1, path.travelTime1, path.method2, path.travelTime2, path.method3, path.travelTime3,
 //                    path.method4, path.travelTime4, path.method5, path.travelTime5, path.method6, path.travelTime6

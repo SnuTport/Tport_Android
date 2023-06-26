@@ -14,9 +14,15 @@ interface RestService {
     @POST("api/v1/reservation")
     suspend fun reservation(@Body request: ReservationRequest): ReservationResponse
     @GET("api/v1/path/search")
-    suspend fun searchPath(
+    suspend fun searchPathList(
         @Query("originName") origin: String,
         @Query("destinationName") destination: String,
         @Query("departureTime") time: String,
     ): List<Path>
+
+    @GET("api/v1/path/{pathGroupId}")
+    suspend fun getPath(
+        @retrofit2.http.Path("pathGroupId") pathGroupId: Int,
+        @Query("departureTime") time: String,
+    ): Path
 }

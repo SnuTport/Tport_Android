@@ -15,9 +15,12 @@ data class Path(
     val id: Int,
     val getOnBusStop: String,
     val getOffBusStop: String,
-    val bus: Bus,
+    val departureTime: String,
     val fare: Int,
-    val travelTime: Int
+    val travelTime: Int,
+    val subPaths: List<SubPath>,
+    val metroSubPath: SubPath,
+    val metroBusDetail: Bus
 ) : Parcelable
 
 @Parcelize
@@ -25,14 +28,14 @@ data class Bus(
     val busId: Int,
     val busNum: String,
     val capacity: Int,
-    val departureTime: LocalTime,
+    val departureTime: String,
     val busStop: List<BusStopInDetail>
 ) : Parcelable
 
 @Parcelize
 data class BusStopInDetail(
     val name: String,
-    val busArrivalTime: LocalTime,
+    val busArrivalTime: String,
     val forecastingBusStopData: ForecastingBusStopData,
     val actualBusStopData: ActualBusStopData
 ) : Parcelable
@@ -67,4 +70,29 @@ data class LocalTime(
     val minute: Int,
     val second: Int,
     val nano: Int
+) : Parcelable
+
+@Parcelize
+data class SubPath(
+    val getOnBusStop: String,
+    val getOffBusStop: String,
+    val travelTime: Int,
+    val vehicle: Vehicle
+) : Parcelable
+
+@Parcelize
+data class Vehicle(
+    val busId: Int?,
+    val busNum: String?,
+    val capacity: Int?,
+    val departureTime: String?,
+    val busStop: List<BusStopInDetail2>?,
+    val type: String
+) : Parcelable
+
+@Parcelize
+data class BusStopInDetail2(
+    val name: String,
+    val busArrivalTime: String,
+    val forecastedDemand: Int
 ) : Parcelable
