@@ -17,7 +17,21 @@ class SubPathListAdapter(
         fun bind(subPath: SubPath){
             binding.apply {
                 val travelTimeString = subPath.travelTime.toString() + "분"
-                method.text = subPath.vehicle.type
+                val subPathNameString = when (subPath.vehicle.type) {
+                    "WALK" -> {
+                        "도보"
+                    }
+                    "SUBWAY" -> {
+                        "지하철"
+                    }
+                    "BUS" -> {
+                        "버스" + subPath.vehicle.busNum
+                    }
+                    else -> {
+                        "버스" + subPath.vehicle.busNum
+                    }
+                }
+                method.text = subPathNameString
                 travelTime.text = travelTimeString
                 startPoint.text = subPath.getOnBusStop
                 if(subPath.vehicle.type == "M_BUS"){

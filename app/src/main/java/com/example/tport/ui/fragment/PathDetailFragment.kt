@@ -67,6 +67,7 @@ class PathDetailFragment : Fragment() {
         binding.reserveButton.setOnClickListener{
             lifecycleScope.launch {
                 viewModel.reservePath(selectedPath, selectedTime)
+                viewModel.getPath(selectedPath, selectedTime)
             }
         }
 
@@ -83,76 +84,6 @@ class PathDetailFragment : Fragment() {
         }
     }
 
-/*
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        viewModel.retrievePath(navigationArgs.path).observe(this.viewLifecycleOwner){
-            bind(it)
-            path = it
-            var methodList = viewModel.getMethodList(it)
-            val adapter = MethodListAdapter(
-                onItemClicked = {
-
-                },
-                onButtonClicked = {
-                    updateReservedData(path)
-                    methodList = viewModel.getMethodList(path)
-                }
-            )
-            binding.recyclerview.adapter = adapter
-            binding.recyclerview.layoutManager = LinearLayoutManager(this.context)
-            adapter.submitList(methodList)
-        }
-        binding.upButton.setOnClickListener{
-            findNavController().navigateUp()
-        }
-
-    }
-
-    fun bind(path: Path0){
-        val hourArrival = path.tportArrivalTime/60
-        val minArrival = path.tportArrivalTime%60
-        val timeArrival = hourArrival.toString() + "시 " + minArrival.toString() + "분"
-        val listArrivalTime: List<String> = listOf("ㅣ", timeArrival, "도착", "ㅣ")
-        val hourTravel = path.tportTravelTime/60
-        val minTravel = path.tportTravelTime%60
-        val timeTravel = hourTravel.toString() + "시간 " + minTravel.toString() + "분"
-        binding.apply {
-            totalTravelTime.text = timeTravel
-            finalArrivalTime.text = listArrivalTime.joinToString(" ")
-            fare.text = path.fare
-            travelSequence.text = concatenateSequence(
-                path.method1, path.travelTime1, path.method2, path.travelTime2, path.method3,
-                path.travelTime3, path.method4, path.travelTime4, path.method5, path.travelTime5,
-                path.method6, path.travelTime6
-            )
-            arrivalTime.text = timeArrival
-            destination.text = path.destination
-        }
-    }
-
-    private fun concatenateSequence(
-        s1: String, s2: String, s3: String, s4: String, s5: String, s6: String,
-        s7: String, s8: String, s9: String, s10: String, s11: String, s12: String,
-    ): String {
-        val input = listOf(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12)
-        val output: MutableList<String> = mutableListOf()
-        for (i in input.indices) {
-            if (input[i] != "None" && input[i] != "NoneNone" && input[i] != "" ) {
-
-                if (i%2 == 1) {
-                    output.add(input[i-1]+" "+input[i]+"분")
-                }
-            }
-        }
-        return output.joinToString("  →  ")
-    }
-
-    private fun updateReservedData(path: Path0) {
-        viewModel.updateReservedNum(path.id)
-    }
-*/
     private fun bind(path: Path){
         val busStopList: List<BusStopInDetail> = path.metroBusDetail.busStop
         val subPathList: List<SubPath> = path.subPaths
@@ -169,7 +100,7 @@ class PathDetailFragment : Fragment() {
         var busReservedNum = 0
 
         for (busStop in busStopList) {
-            if (busStop.name == path.getOnBusStop){
+            if (busStop.name == path.metroSubPath.getOnBusStop){
                 busArrivalTimeString = busStop.busArrivalTime
                 busEmptyNum = busStop.forecastingBusStopData.emptyNum
                 busDemand = busStop.forecastingBusStopData.demand
@@ -188,7 +119,7 @@ class PathDetailFragment : Fragment() {
         val emptyNumAndString = "빈자리수 " + busEmptyNum.toString() + "석" + " / " + "대기인원 "
         val waitingTimeString = if ( busDemand <= busEmptyNum ) {
             "대기시간 15분"
-        } else if ( busEmptyNum < busDemand && busDemand < 2*busEmptyNum ){
+        } else if ( busDemand < 2*busEmptyNum ){
             "대기시간 30분"
         } else {
             "대기시간 45분"

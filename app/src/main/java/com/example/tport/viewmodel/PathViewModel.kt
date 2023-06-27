@@ -29,7 +29,7 @@ class PathViewModel(
     suspend fun reservePath(path: Path, time:String){
         try {
             val id = path.metroBusDetail.busId
-            val busStop = path.getOnBusStop
+            val busStop = path.metroSubPath.getOnBusStop
             val response = restService.reservation(id, busStop, time, ReservationRequest(id, busStop, time))
         } catch (e: Exception) {
             Log.d("Error", "Error is occurred. Error: $e")
@@ -40,6 +40,13 @@ class PathViewModel(
         try {
             val response: Path = restService.getPath(path.id, time)
             _path.value = response
+            val busStopList: List<BusStopInDetail> = response.metroBusDetail.busStop
+            for (busStop in busStopList) {
+                if (busStop.name == path.getOnBusStop){
+                    Log.d("PathViewModel", "reservedNum is ${busStop.forecastingBusStopData.reservedNum}")
+                    Log.d("PathViewModel", "reservedNum is ${busStop.forecastingBusStopData.emptyNum}")
+                }
+            }
         } catch (e: Exception) {
             Log.d("Error", "Error is occurred. Error: $e")
         }
