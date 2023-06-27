@@ -12,7 +12,11 @@ interface RestService {
     @POST("api/v1/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
     @POST("api/v1/reservation")
-    suspend fun reservation(@Body request: ReservationRequest): ReservationResponse
+    suspend fun reservation(
+        @Query("busId") busId: Int,
+        @Query("getOnBusStop") busStop: String,
+        @Query("reservationRequestDateTime") time: String,
+        @Body request: ReservationRequest): ReservationResponse
     @GET("api/v1/path/search")
     suspend fun searchPathList(
         @Query("originName") origin: String,

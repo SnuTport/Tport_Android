@@ -3,6 +3,7 @@ package com.example.tport.ui.fragment
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -17,11 +18,15 @@ import com.example.tport.MyApplication
 import com.example.tport.databinding.FragmentPathDetailBinding
 import com.example.tport.network.dto.BusStopInDetail
 import com.example.tport.network.dto.Path
+import com.example.tport.network.dto.SubPath
 import com.example.tport.network.dto.previous.Path0
 import com.example.tport.ui.PathFindingViewModel
 import com.example.tport.ui.PathFindingViewModelFactory
 import com.example.tport.ui.adapter.MethodListAdapter
+import com.example.tport.ui.adapter.SubPathListAdapter
 import com.example.tport.viewmodel.PathViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -35,12 +40,6 @@ class PathDetailFragment : Fragment() {
     private val binding get() = _binding!!
     private val navigationArgs: PathDetailFragmentArgs by navArgs()
     private val viewModel: PathViewModel by viewModel()
-
-//    private val viewModel: PathFindingViewModel by activityViewModels {
-//        PathFindingViewModelFactory(
-//            (activity?.application as MyApplication).database.pathDao(),
-//        )
-//    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -61,22 +60,26 @@ class PathDetailFragment : Fragment() {
         val selectedPath: Path = navigationArgs.path!!
         val selectedTime: String = navigationArgs.time
 
-        val adapter = MethodListAdapter(
-            onItemClicked = {
+        val adapter = SubPathListAdapter()
+        binding.recyclerview.adapter = adapter
+        binding.recyclerview.layoutManager = LinearLayoutManager(this.context)
 
-            },
-            onButtonClicked = {
-                lifecycleScope.launch {
-                    viewModel.reservePath(selectedPath, selectedTime)
-                }
+        binding.reserveButton.setOnClickListener{
+            lifecycleScope.launch {
+                viewModel.reservePath(selectedPath, selectedTime)
             }
-        )
+        }
 
-        lifecycleScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             viewModel.getPath(selectedPath, selectedTime)
             viewModel.path.collect {
-//                adapter.submitList(it.subPaths)
+                bind(it!!)
+                adapter.submitList(it.subPaths)
             }
+        }
+
+        binding.upButton.setOnClickListener{
+            findNavController().navigateUp()
         }
     }
 
@@ -152,57 +155,74 @@ class PathDetailFragment : Fragment() {
 */
     private fun bind(path: Path){
         val busStopList: List<BusStopInDetail> = path.metroBusDetail.busStop
-        var busArrivalTime: String = ""
-        var busArrivalHour: Int = 0
-        var busArrivalMin: Int = 0
-        var busEmptyNum: Int = 45
-        var busDemand: Int = 0
-        var busReservedNum: Int = 0
-        var busUnreservedNum: Int = 0
+        val subPathList: List<SubPath> = path.subPaths
+        val travelSequenceList = mutableListOf<String>()
+        for (subPath in subPathList) {
+            travelSequenceList.add(subPath.vehicle.type + " " + subPath.travelTime.toString() + "분")
+            Log.d("TravelSequence", "$travelSequenceList")
+        }
+        val destinationString = subPathList[subPathList.size-1].getOffBusStop
+        var busArrivalTimeString = ""
+        var finalArrivalTimeString = ""
+        var busEmptyNum = 45
+        var busDemand = 0
+        var busReservedNum = 0
 
         for (busStop in busStopList) {
             if (busStop.name == path.getOnBusStop){
-                busArrivalTime = busStop.busArrivalTime
+                busArrivalTimeString = busStop.busArrivalTime
                 busEmptyNum = busStop.forecastingBusStopData.emptyNum
                 busDemand = busStop.forecastingBusStopData.demand
                 busReservedNum = busStop.forecastingBusStopData.reservedNum
-                busUnreservedNum = busStop.forecastingBusStopData.unreservedNum
+            } else if( busStop.name == path.getOffBusStop){
+                finalArrivalTimeString = busStop.busArrivalTime
             }
 
         }
-
-        val listArrivalTime: List<String> = listOf("ㅣ", busArrivalTime, "도착", "ㅣ")
+        val listArrivalTime: List<String> = listOf("ㅣ", busArrivalTimeString, "도착", "ㅣ")
         val hourTravel = path.travelTime/60
         val minTravel = path.travelTime%60
         val timeTravel = hourTravel.toString() + "시간 " + minTravel.toString() + "분"
+        val fareString = path.fare.toString() + "원"
+        val reservedNumString = "예약인원 " + busReservedNum.toString() + "명"
+        val emptyNumAndString = "빈자리수 " + busEmptyNum.toString() + "석" + " / " + "대기인원 "
+        val waitingTimeString = if ( busDemand <= busEmptyNum ) {
+            "대기시간 15분"
+        } else if ( busEmptyNum < busDemand && busDemand < 2*busEmptyNum ){
+            "대기시간 30분"
+        } else {
+            "대기시간 45분"
+        }
 
         binding.apply {
             totalTravelTime.text = timeTravel
             finalArrivalTime.text = listArrivalTime.joinToString(" ")
-            val fareString = path.fare.toString() + "원"
             fare.text = fareString
-            travelSequence.text = ""
-    //                travelSequence.text = concatenate(
-    //                    path.method1, path.travelTime1, path.method2, path.travelTime2, path.method3, path.travelTime3,
-    //                    path.method4, path.travelTime4, path.method5, path.travelTime5, path.method6, path.travelTime6
-    //                )
-        }
-    }
-
-    private fun concatenateSequence(
-        s1: String, s2: String, s3: String, s4: String, s5: String, s6: String,
-        s7: String, s8: String, s9: String, s10: String, s11: String, s12: String,
-    ): String {
-        val input = listOf(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12)
-        val output: MutableList<String> = mutableListOf()
-        for (i in input.indices) {
-            if (input[i] != "None" && input[i] != "NoneNone" && input[i] != "" ) {
-
-                if (i%2 == 1) {
-                    output.add(input[i-1]+" "+input[i]+"분")
+            travelSequence.text = travelSequenceList.joinToString(" → ")
+            reservedNum.text = reservedNumString
+            metroBusNum.text = path.metroBusDetail.busNum
+            emptyNumAnd.text = emptyNumAndString
+            waitingTime.text = waitingTimeString
+            destination.text = destinationString
+            val waitingConditionText = if (busDemand <= busEmptyNum / 2) {
+                "여유"
+            } else if (busEmptyNum / 2 < busDemand && busDemand <= busEmptyNum) {
+                "혼잡"
+            } else {
+                "포화"
+            }
+            waitingCondition.text = waitingConditionText
+            when (waitingCondition.text) {
+                "여유" -> {
+                    waitingCondition.setTextColor(Color.parseColor("#00FF00")) // 연두색
+                }
+                "혼잡" -> {
+                    waitingCondition.setTextColor(Color.parseColor("#FF7F00")) // 주황색
+                }
+                else -> {
+                    waitingCondition.setTextColor(Color.parseColor("#FF0000")) // 빨간색
                 }
             }
         }
-        return output.joinToString("  →  ")
     }
 }

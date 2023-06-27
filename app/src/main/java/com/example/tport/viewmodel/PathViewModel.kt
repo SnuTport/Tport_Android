@@ -30,7 +30,7 @@ class PathViewModel(
         try {
             val id = path.metroBusDetail.busId
             val busStop = path.getOnBusStop
-            val response = restService.reservation(ReservationRequest(id, busStop, time))
+            val response = restService.reservation(id, busStop, time, ReservationRequest(id, busStop, time))
         } catch (e: Exception) {
             Log.d("Error", "Error is occurred. Error: $e")
         }
@@ -39,6 +39,7 @@ class PathViewModel(
     suspend fun getPath(path: Path, time: String){
         try {
             val response: Path = restService.getPath(path.id, time)
+            _path.value = response
         } catch (e: Exception) {
             Log.d("Error", "Error is occurred. Error: $e")
         }

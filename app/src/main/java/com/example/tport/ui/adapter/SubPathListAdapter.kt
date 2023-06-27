@@ -1,30 +1,47 @@
 package com.example.tport.ui.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.example.tport.databinding.MethodListItemBinding
+import com.example.tport.databinding.SubPathListItemBinding
 import com.example.tport.network.dto.SubPath
 
 class SubPathListAdapter(
-    private val onItemClicked:(SubPath) -> Unit, private val onButtonClicked: (SubPath) -> Unit,
 ): ListAdapter<SubPath, SubPathListAdapter.SubPathViewHolder>(DiffCallback) {
-    class SubPathViewHolder(private val binding: MethodListItemBinding):
+    class SubPathViewHolder(private val binding: SubPathListItemBinding):
         RecyclerView.ViewHolder(binding.root){
-        val button = binding.reserveButton
 
         fun bind(subPath: SubPath){
+            binding.apply {
+                val travelTimeString = subPath.travelTime.toString() + "분"
+                method.text = subPath.vehicle.type
+                travelTime.text = travelTimeString
+                startPoint.text = subPath.getOnBusStop
+                if(subPath.vehicle.type == "M_BUS"){
+                    val busName = "버스" + subPath.vehicle.busNum.toString()
+                    val busStopList = subPath.vehicle.busStop
+                    var busArrivalTimeString = ""
+                    for (busStop in busStopList!!) {
+                        if (busStop.name == subPath.getOnBusStop){
+                            busArrivalTimeString = busStop.busArrivalTime + "도착"
+                        }
 
+                    }
+                    waitingBus.text = busName
+                    busArrivalTime.text = busArrivalTimeString
+                }
+            }
         }
     }
 
-    private var _viewBinding: MethodListItemBinding? = null
+    private var _viewBinding: SubPathListItemBinding? = null
     private val viewBinding get() = _viewBinding!!
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SubPathListAdapter.SubPathViewHolder {
-        _viewBinding = MethodListItemBinding.inflate(LayoutInflater.from(parent.context))
+        _viewBinding = SubPathListItemBinding.inflate(LayoutInflater.from(parent.context))
         return SubPathListAdapter.SubPathViewHolder(viewBinding)
     }
 
@@ -32,10 +49,6 @@ class SubPathListAdapter(
         val current = getItem(position)
 
         holder.bind(current)
-
-        holder.button.setOnClickListener {
-            onButtonClicked(current)
-        }
     }
 
 

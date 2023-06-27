@@ -50,14 +50,14 @@ class TportPathListAdapter(
             val timeTravel = hourTravel.toString() + "시간 " + minTravel.toString() + "분"
 
             binding.apply {
-                val waitingConditionText = if (busDemand <= busEmptyNum / 2) {
+                val waitingConditionString = if (busDemand <= busEmptyNum / 2) {
                     "여유"
                 } else if (busEmptyNum / 2 < busDemand && busDemand <= busEmptyNum) {
                     "혼잡"
                 } else {
                     "포화"
                 }
-                waitingCondition.text = waitingConditionText
+                waitingCondition.text = waitingConditionString
                 when (waitingCondition.text) {
                     "여유" -> {
                         waitingCondition.setTextColor(Color.parseColor("#00FF00")) // 연두색
@@ -75,10 +75,6 @@ class TportPathListAdapter(
                 val fareString = path.fare.toString() + "원"
                 fare.text = fareString
                 travelSequence.text = travelSequenceList.joinToString(" → ")
-//                travelSequence.text = concatenate(
-//                    path.method1, path.travelTime1, path.method2, path.travelTime2, path.method3, path.travelTime3,
-//                    path.method4, path.travelTime4, path.method5, path.travelTime5, path.method6, path.travelTime6
-//                )
             }
         }
     }

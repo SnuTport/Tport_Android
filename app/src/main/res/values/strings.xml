@@ -14,4 +14,7 @@
     <string name="login">로그인</string>
     <string name="user_name">사용자 이름</string>
     <string name="password">비밀번호</string>
+    <string name="present_reservation_data">예약 현황</string>
+    <string name="forecasted_waiting_time">예상 대기시간</string>
+    <string name="forecasted_bus_stop_data">예상 승차정보</string>
 </resources>
